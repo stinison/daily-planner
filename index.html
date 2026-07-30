@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="sv">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Daily Planner</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="manifest" href="manifest.json">
+    </head>
+
+    <body>
+        <header>
+            <h1>Daily Planner</h1>
+            <p id="date"></p>
+        </header>
+        <main>
+            <input id="taskInput" type="text" placeholder="Ange aktivitet...">
+            <input id="taskDate" type="date">
+            <button id="newTask">
+                + Ny Aktivitet
+            </button>
+            <button id="clearTasks">
+                Rensa alla aktiviteter
+            </button>
+            <div id="todoList"></div>
+        </main>
+        <script src="app.js"></script>
+
+    </body>
+</html>
