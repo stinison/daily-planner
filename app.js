@@ -1,229 +1,497 @@
-let tasks = [];
-const date = new Date();
-document.getElementById("date").innerText = date.toLocaleDateString("sv-SE", {weekday: "long", day: "numeric", month: "long", year: "numeric"})
-const todoList = document.getElementById("todoList");
-const button = document.getElementById("newTask");
+alert("app.js startar");
 
+let tasks = [];
+
+// =========================
+// HJÄLPFUNKTIONER FÖR DATUM
+// =========================
+function dateToString(date) {
+
+    return date.getFullYear() + "-" +
+        String(date.getMonth() + 1).padStart(2, "0") + "-" +
+        String(date.getDate()).padStart(2, "0");
+
+}
+
+function stringToDate(dateString) {
+
+    let parts = dateString.split("-");
+
+    return new Date(
+        Number(parts[0]),
+        Number(parts[1]) - 1,
+        Number(parts[2])
+    );
+
+}
+
+
+// =========================
+// DAGENS DATUM
+// =========================
+const date = new Date();
+
+document.getElementById("date").innerText =
+    date.toLocaleDateString("sv-SE", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+
+
+const todoList =
+    document.getElementById("todoList");
+
+const button =
+    document.getElementById("newTask");
+
+
+// =========================
+// LÄGG TILL AKTIVITET
+// =========================
 button.addEventListener("click", function () {
 
-    let input = document.getElementById("taskInput");
-    let text = input.value;
+    let input =
+        document.getElementById("taskInput");
 
-    let dateInput = document.getElementById("taskDate");
-    let selectedDate = dateInput.value;
+    let text =
+        input.value;
 
-    let repeatInput = document.getElementById("taskRepeat");
-    let repeat = repeatInput.value;
+    let dateInput =
+        document.getElementById("taskDate");
 
-    if (text == null || text == "")
+    let selectedDate =
+        dateInput.value;
+
+    let repeatInput =
+        document.getElementById("taskRepeat");
+
+    let repeat =
+        repeatInput.value;
+
+
+    if (text === "") {
+        return;
+    }
+
+
+    if (selectedDate === "") {
+
+        alert("Välj ett datum.");
+
         return;
 
+    }
+
+
     let task = {
+
+        id: Date.now(),
+
         text: text,
+
         completed: false,
-        date: selectedDate
+
+        date: selectedDate,
+
         repeat: repeat
+
     };
+
 
     tasks.push(task);
 
+
+    // Skapa alla dagar direkt om aktiviteten ska upprepas
+
+    if (repeat === "daily") {
+
+        createRecurringTasks();
+
+    }
+
+
     localStorage.setItem(
-        "tasks", 
+        "tasks",
         JSON.stringify(tasks)
     );
-    
+
+
     renderTasks();
+
 
     input.value = "";
 
 });
 
 
-let savedTasks = localStorage.getItem("tasks");
+// =========================
+// LADDA SPARADE AKTIVITETER
+// =========================
+let savedTasks =
+    localStorage.getItem("tasks");
 
-if(savedTasks){
 
-    tasks = JSON.parse(savedTasks);
+if (savedTasks) {
+
+    tasks =
+        JSON.parse(savedTasks);
+
 
     createRecurringTasks();
 
+
     renderTasks();
+
 }
 
-const clearButton = document.getElementById("clearTasks");
 
-clearButton.addEventListener("click", function(){
+// =========================
+// RENSA ALLA AKTIVITETER
+// =========================
+const clearButton =
+    document.getElementById("clearTasks");
+
+
+clearButton.addEventListener("click", function () {
+
+    let confirmClear =
+        confirm(
+            "Är du säker på att du vill radera alla aktiviteter?"
+        );
+
+
+    if (!confirmClear) {
+        return;
+    }
+
 
     tasks = [];
 
+
     localStorage.removeItem("tasks");
+
 
     renderTasks();
 
 });
 
-function createRecurringTasks(){
 
-    let today = new Date();
+// =========================
+// SKAPA ÅTERKOMMANDE AKTIVITETER
+// =========================
+function createRecurringTasks() {
 
-    today.setHours(0,0,0,0);
+    let today =
+        new Date();
 
-    tasks.forEach(task => {
 
-        if (task.repeat !== "daily"){
-            return;
-        }
+    let todayString =
+        dateToString(today);
 
-        let startDate = new Date(task.date);
 
-        startDate.setHours(0,0,0,0);
-
-        if (startDate > today){
-            return;
-        }
-
-        let todayString = today.toISOString().split("T")[0];
-
-        let alreadyExsists = tasks.some(otherTask =>
-            otherTask.text == task.text &&
-            otherTask.date == todayString &&
-            otherTask.repeat == "generated"
+    let recurringTasks =
+        tasks.filter(task =>
+            task.repeat === "daily"
         );
 
-        if (!alreadyExsists && tast.date !== todayString){
 
-            task.push({
-                text: task.text,
-                completed: false,
-                date: todayString,
-                repeat: "generated"
-            });
+    let newTasks = [];
+
+
+    recurringTasks.forEach(task => {
+
+        let currentDate =
+            stringToDate(task.date);
+
+
+        while (true) {
+
+            let dateString =
+                dateToString(currentDate);
+
+
+            // Vi har kommit efter idag
+
+            if (dateString > todayString) {
+
+                break;
+
+            }
+
+
+            // Kontrollera om dagens
+            // genererade aktivitet redan finns
+
+            let alreadyExists =
+                tasks.some(otherTask =>
+                    otherTask.recurringId === task.id &&
+                    otherTask.date === dateString
+                );
+
+
+            // Startdatumet är själva
+            // originalaktiviteten
+
+            if (
+                dateString !== task.date &&
+                !alreadyExists
+            ) {
+
+                newTasks.push({
+
+                    id:
+                        Date.now() +
+                        Math.random(),
+
+                    text:
+                        task.text,
+
+                    completed:
+                        false,
+
+                    date:
+                        dateString,
+
+                    repeat:
+                        "generated",
+
+                    recurringId:
+                        task.id
+
+                });
+
+            }
+
+
+            // Nästa dag
+
+            currentDate.setDate(
+                currentDate.getDate() + 1
+            );
 
         }
 
     });
 
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+    tasks.push(...newTasks);
+
+
+    localStorage.setItem(
+        "tasks",
+        JSON.stringify(tasks)
+    );
+
 }
 
 
-function renderTasks(){
+// =========================
+// VISA AKTIVITETER
+// =========================
+
+function renderTasks() {
 
     todoList.innerHTML = "";
 
+
     let groupedTasks = {};
+
 
     tasks.forEach(task => {
 
-        if(!groupedTasks[task.date]){
+        if (!groupedTasks[task.date]) {
+
             groupedTasks[task.date] = [];
+
         }
+
 
         groupedTasks[task.date].push(task);
 
     });
 
-    let sortedDates = Object.keys(groupedTasks).sort((a,b) => {
 
-        let today = new Date();
-        today.setHours(0,0,0,0);
+    // Sortera datumen
 
-        let dateA = new Date(a);
-        let dateB = new Date(b);
+    let sortedDates =
+        Object.keys(groupedTasks)
+            .sort((a, b) => {
 
-        let pastA = dateA < today;
-        let pastB = dateB < today;
+                let today =
+                    new Date();
 
-        if(pastA && !pastB){
-            return 1;
-        }
 
-        if(!pastA && pastB){
-            return -1;
-        }
+                let todayString =
+                    dateToString(today);
 
-        return dateA - dateB;
 
-    });
+                let pastA =
+                    a < todayString;
+
+                let pastB =
+                    b < todayString;
+
+
+                if (pastA && !pastB) {
+                    return 1;
+                }
+
+
+                if (!pastA && pastB) {
+                    return -1;
+                }
+
+
+                return a.localeCompare(b);
+
+            });
+
+
+    // Visa varje datum
 
     sortedDates.forEach(date => {
 
-        let title = document.createElement("h2");
+        let title =
+            document.createElement("h2");
 
-        title.innerText = formatDate(date);
+
+        title.innerText =
+            formatDate(date);
+
 
         todoList.appendChild(title);
 
-        groupedTasks[date].forEach(task => {
 
-            let div = document.createElement("div");
+        groupedTasks[date]
+            .forEach(task => {
 
-            div.className = "task";
+                let div =
+                    document.createElement("div");
 
-            div.innerHTML = `
-                <input type="checkbox">
-                <span>${task.text}</span>
-                <button class="deleteButton">🗑️</button>
-            `;
 
-            let checkbox = div.querySelector("input");
-            let deleteButton = div.querySelector(".deleteButton");
+                div.className =
+                    "task";
 
-            checkbox.checked = task.completed;
 
-            checkbox.onchange = () => {
+                div.innerHTML = `
+                    <input type="checkbox">
+                    <span>${task.text}</span>
+                    <button class="deleteButton">🗑️</button>
+                `;
 
-                task.completed = checkbox.checked;
 
-                localStorage.setItem(
-                    "tasks",
-                    JSON.stringify(tasks)
-                );
-            };
+                let checkbox =
+                    div.querySelector("input");
 
-            deleteButton.onclick = () => {
 
-                tasks = tasks.filter(t => t !== task);
+                let deleteButton =
+                    div.querySelector(".deleteButton");
 
-                localStorage.setItem(
-                    "tasks",
-                    JSON.stringify(tasks)
-                );
 
-                renderTasks();
+                checkbox.checked =
+                    task.completed;
 
-            };
 
-            todoList.appendChild(div);
+                checkbox.onchange =
+                    function () {
 
-        });
+                        task.completed =
+                            checkbox.checked;
+
+
+                        localStorage.setItem(
+                            "tasks",
+                            JSON.stringify(tasks)
+                        );
+
+                    };
+
+
+                deleteButton.onclick =
+                    function () {
+
+                        tasks =
+                            tasks.filter(t =>
+                                t.id !== task.id
+                            );
+
+
+                        localStorage.setItem(
+                            "tasks",
+                            JSON.stringify(tasks)
+                        );
+
+
+                        renderTasks();
+
+                    };
+
+
+                todoList.appendChild(div);
+
+            });
+
     });
 
 }
 
-function formatDate(dateString){
 
-    let date = new Date(dateString);
+// =========================
+// FORMATERA DATUM
+// =========================
 
-    let today = new Date();
+function formatDate(dateString) {
 
-    let tomorrow = new Date();
+    let date =
+        stringToDate(dateString);
 
-    tomorrow.setDate(today.getDate() + 1);
 
-    let dateText = date.toLocaleDateString("sv-SE", {
-        weekday: "long",
-        day: "numeric",
-        month: "long"
-    });
+    let today =
+        new Date();
 
-    if(date.toDateString() === today.toDateString()){
+
+    let tomorrow =
+        new Date();
+
+
+    tomorrow.setDate(
+        today.getDate() + 1
+    );
+
+
+    let dateText =
+        date.toLocaleDateString(
+            "sv-SE",
+            {
+                weekday: "long",
+                day: "numeric",
+                month: "long"
+            }
+        );
+
+
+    if (
+        dateToString(date) ===
+        dateToString(today)
+    ) {
+
         return "Idag\n" + dateText;
+
     }
 
-    if(date.toDateString() === tomorrow.toDateString()){
+
+    if (
+        dateToString(date) ===
+        dateToString(tomorrow)
+    ) {
+
         return "Imorgon\n" + dateText;
+
     }
+
 
     return dateText;
+
 }
