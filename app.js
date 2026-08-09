@@ -45,6 +45,8 @@ if(savedTasks){
 
     tasks = JSON.parse(savedTasks);
 
+    createRecurringTasks();
+
     renderTasks();
 }
 
@@ -59,6 +61,50 @@ clearButton.addEventListener("click", function(){
     renderTasks();
 
 });
+
+function createRecurringTasks(){
+
+    let today = new Date();
+
+    today.setHours(0,0,0,0);
+
+    tasks.forEach(task => {
+
+        if (task.repeat !== "daily"){
+            return;
+        }
+
+        let startDate = new Date(task.date);
+
+        startDate.setHours(0,0,0,0);
+
+        if (startDate > today){
+            return;
+        }
+
+        let todayString = today.toISOString().split("T")[0];
+
+        let alreadyExsists = tasks.some(otherTask =>
+            otherTask.text == task.text &&
+            otherTask.date == todayString &&
+            otherTask.repeat == "generated"
+        );
+
+        if (!alreadyExsists && tast.date !== todayString){
+
+            task.push({
+                text: task.text,
+                completed: false,
+                date: todayString,
+                repeat: "generated"
+            });
+
+        }
+
+    });
+
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
 
 
 function renderTasks(){
