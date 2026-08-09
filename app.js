@@ -12,6 +12,9 @@ button.addEventListener("click", function () {
     let dateInput = document.getElementById("taskDate");
     let selectedDate = dateInput.value;
 
+    let repeatInput = document.getElementById("taskRepeat");
+    let repeat = repeatInput.value;
+
     if (text == null || text == "")
         return;
 
@@ -19,6 +22,7 @@ button.addEventListener("click", function () {
         text: text,
         completed: false,
         date: selectedDate
+        repeat: repeat
     };
 
     tasks.push(task);
