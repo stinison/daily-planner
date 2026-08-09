@@ -14,9 +14,9 @@
 
     <body>
         <header>
-            <h1>Daily Planner</h1>
             <p id="date"></p>
         </header>
+
         <main>
             <input id="taskInput" type="text" placeholder="Ange aktivitet...">
             <input id="taskDate" type="date">
@@ -32,6 +32,60 @@
             </button>
             <div id="todoList"></div>
         </main>
+
+        <div id="editModal" class="modal">
+
+            <div class="modalContent">
+
+                <h2>Redigera aktivitet</h2>
+
+                <label for="editTaskInput">Aktivitet</label>
+                <input id="editTaskInput" type="text" placeholder="Ange aktivitet...">
+                
+                <label for="editTaskDate">Datum</label>
+                <input id="editTaskDate" type="date">
+                
+                <label for="editTaskRepeat">Upprepning</label>
+                <select id="editTaskRepeat">
+
+                    <option value="none">
+                        En gång
+                    </option>
+                    <option value="daily">
+                        Varje dag
+                    </option>
+
+                </select>
+
+                <div id="editScope" class="editScope">
+
+                    <label>Vad vill du ändra?</label>
+
+                    <select id="editScopeSelect">
+
+                        <option value="single">
+                            Bara denna dag
+                        </option>
+
+                        <option value="series">
+                            Hela serien
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="modalButtons">
+
+                    <button id="cancelEdit">Avbryt</button>
+                    <button id="saveEdit">Spara</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
         <script src="app.js"></script>
 
     </body>
